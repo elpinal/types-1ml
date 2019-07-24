@@ -1,3 +1,4 @@
 module lib
 
+submodule std
 submodule typed_lambda

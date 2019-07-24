@@ -1,0 +1,35 @@
+module option
+
+type OPTION = sig
+  type t a;
+
+  none a : t a;
+  some a : a -> t a;
+
+  is_some a : t a ~> bool;
+  is_none a : t a ~> bool;
+  from a    : a -> t a ~> a;
+  map a b   : (a ~> b) -> t a ~> t b;
+end;
+
+Option :> OPTION = struct
+  type t a = wrap (b : type) -> (a ~> b) -> b ~> b;
+
+  none a =
+    let f b (g : a ~> b) (x : b) = x in
+      wrap f : t a;
+
+  some a (v : a) =
+    let f b (g : a ~> b) (x : b) = g v in
+      wrap f : t a;
+
+  is_some a (v : t a) = (unwrap v : t a) (type bool) (fun (z : a) => true) false;
+
+  is_none a (v : t a) = (unwrap v : t a) (type bool) (fun (z : a) => false) true;
+
+  id a (x : a) = x;
+
+  from a (def : a) (v : t a) = (unwrap v : t a) a (id a) def;
+
+  map a b (f : a ~> b) (v : t a) = (unwrap v : t a) (t b) (fun (x : a) => some b (f x)) (none b);
+end;

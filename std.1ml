@@ -1,0 +1,72 @@
+module std
+
+submodule option
+
+Bool : sig
+  or : bool -> bool -> bool;
+end = struct
+  or (b1 : bool) (b2 : bool) =
+    if b1
+      then true
+      else b2
+    end : bool;
+end;
+
+type Ordering = sig
+  type t;
+
+  LT : t;
+  EQ : t;
+  GT : t;
+end;
+
+type ORD = sig
+  type t;
+
+  lt : t -> t -> bool;
+  eq : t -> t -> bool;
+  gt : t -> t -> bool;
+  le : t -> t -> bool;
+  ge : t -> t -> bool;
+end;
+
+Ord (X : sig type t; compare : (O : Ordering) -> t -> t -> O.t end) =
+  let
+    x = struct
+      type t = bool;
+      LT = false;
+      EQ = false;
+      GT = false;
+    end;
+  in
+  struct
+    type t = X.t;
+
+    lt = X.compare (struct include x; LT = true end);
+    eq = X.compare (struct include x; EQ = true end);
+    gt = X.compare (struct include x; GT = true end);
+
+    le (a : X.t) (b : X.t) = Bool.or (lt a b) (eq a b);
+    ge (a : X.t) (b : X.t) = Bool.or (gt a b) (eq a b);
+  end;
+
+Int : sig
+  to_string : int -> string;
+  compare   : (O : Ordering) -> int -> int -> O.t;
+
+  include ORD;
+end = struct
+  primitive to_string = "int_to_string";
+
+  primitive compare = "int_compare";
+
+  include Ord (struct type t = int; compare = compare end);
+end;
+
+String : sig
+  concat : string -> string -> string;
+end = struct
+  primitive concat = "string_concat";
+end;
+
+primitive print_endline = "print_endline";
