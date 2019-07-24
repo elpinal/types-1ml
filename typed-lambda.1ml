@@ -1,0 +1,17 @@
+module typed_lambda
+
+type Type = sig
+  type t;
+
+  Int : t;
+  Arrow : t -> t -> t;
+end;
+
+type Term = sig
+  type t;
+  type ty;
+
+  Int : int -> t;
+  Abs : ty -> t -> t;
+  App : t -> t -> t;
+end;
