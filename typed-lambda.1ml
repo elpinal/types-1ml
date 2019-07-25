@@ -1,5 +1,11 @@
 module typed_lambda
 
+use "types/std/option"
+use "types/equality"
+
+include option;
+include equality;
+
 type Type = sig
   type t a;
 
@@ -8,6 +14,17 @@ type Type = sig
 end;
 
 type TQ a = (T : Type) -> T.t a;
+
+AsInt : Type = struct
+  type t a = Option.t (Equality.t a (type int));
+
+  none a = Option.none (Equality.t a (type int));
+  some a = Option.some (Equality.t a (type int));
+
+  Int = some (type int) (Equality.refl (type int));
+
+  Arrow a b (ty1 : t a) (ty2 : t b) = none (type (a ~> b));
+end;
 
 type Term = sig
   type t;
