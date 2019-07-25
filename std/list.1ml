@@ -6,7 +6,9 @@ use "types/std/ordering"
 open option;
 open ordering;
 
-option = Option.t;
+open struct
+  option = Option.t;
+end;
 
 List :> sig
   type t a;
