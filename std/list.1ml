@@ -1,0 +1,64 @@
+module list
+
+use "types/std/option"
+use "types/std/ordering"
+
+open option;
+open ordering;
+
+option = Option.t;
+
+List :> sig
+  type t a;
+
+  nil a  : t a;
+  cons a : a -> t a -> t a;
+
+  head a : t a ~> option a;
+
+  -- If a given list is empty, then return an empty list.
+  tail a : t a ~> t a;
+
+  nth a : int ~> t a ~> option a;
+end = struct
+  type t a = wrap (b : type) -> (b ~> a ~> b) -> b ~> b;
+
+  nil a =
+    let f b (g : b ~> a ~> b) (def : b) = def in
+      wrap f : t a;
+
+  cons a (x : a) (xs : t a) =
+    let f b (g : b ~> a ~> b) (def : b) = (unwrap xs : t a) b g (g def x) in
+      wrap f : t a;
+
+  head a (xs : t a) =
+    let f (opt : option a) (x : a) : option a = Option.some a (Option.from a x opt) in
+      (unwrap xs : t a) (option a) f (Option.none a);
+
+  tail a (xs : t a) =
+    let type S = sig
+      fst : t a;
+      snd : int;
+    end in
+    let f (p : S) (x : a) : S = struct
+      fst = if Int.eq (p.snd) 0 then nil a else cons a x (p.fst) end : t a;
+      snd = (p.snd) + 1;
+    end in
+      ((unwrap xs : t a) S f struct
+        fst = nil a;
+        snd = 0;
+      end).fst;
+
+  nth a (n0 : int) =
+    let f (self : int ~> t a ~> option a) (n : int) (xs : t a) =
+      if Int.lt n 0
+        then Option.none a
+        else
+          if Int.eq n 0
+            then head a xs
+            else self (n - 1) (tail a xs)
+          end : option a
+      end : option a;
+    in
+      fix (type int) (type (t a ~> option a)) f n0;
+end;

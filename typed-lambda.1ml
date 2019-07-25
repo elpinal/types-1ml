@@ -3,8 +3,8 @@ module typed_lambda
 use "types/std/option"
 use "types/equality"
 
-include option;
-include equality;
+open option;
+open equality;
 
 type Type = sig
   type t a;
