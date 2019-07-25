@@ -25,6 +25,16 @@ TQType : Type = struct
       wrap (fun (T : Type) => T.Arrow a b (ty1 T) (ty2 T)) : t (type (a ~> b));
 end;
 
+type ExType = wrap sig
+  type a;
+  tq : TQ a;
+end;
+
+ex_type a (tq : TQ a) = wrap struct
+  type a = a;
+  tq = tq;
+end : ExType;
+
 AsInt : Type = struct
   type t a = Option.t (Equality.t a (type int));
 
