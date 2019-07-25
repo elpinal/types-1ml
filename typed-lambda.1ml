@@ -1,11 +1,13 @@
 module typed_lambda
 
 type Type = sig
-  type t;
+  type t a;
 
-  Int : t;
-  Arrow : t -> t -> t;
+  Int : t (type int);
+  Arrow a b : t a -> t b -> t (type (a ~> b));
 end;
+
+type TQ a = (T : Type) -> T.t a;
 
 type Term = sig
   type t;
