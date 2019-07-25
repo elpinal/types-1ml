@@ -13,7 +13,17 @@ type Type = sig
   Arrow a b : t a -> t b -> t (type (a ~> b));
 end;
 
-type TQ a = (T : Type) -> T.t a;
+type TQ a = wrap (T : Type) -> T.t a;
+
+TQType : Type = struct
+  type t a = TQ a;
+
+  Int = wrap (fun (T : Type) => T.Int) : t (type int);
+  Arrow a b (ty1 : t a) (ty2 : t b) =
+    let ty1 = unwrap ty1 : t a in
+    let ty2 = unwrap ty2 : t b in
+      wrap (fun (T : Type) => T.Arrow a b (ty1 T) (ty2 T)) : t (type (a ~> b));
+end;
 
 AsInt : Type = struct
   type t a = Option.t (Equality.t a (type int));
@@ -24,6 +34,41 @@ AsInt : Type = struct
   Int = some (type int) (Equality.refl (type int));
 
   Arrow a b (ty1 : t a) (ty2 : t b) = none (type (a ~> b));
+end;
+
+type ArrowEq a = wrap sig
+  type dom;
+  type cod;
+
+  eq : Equality.t a (type dom ~> cod);
+end;
+
+AsArrow : Type = struct
+  type t a = sig
+    ty : TQ a;
+    eq : Option.t (ArrowEq a);
+  end;
+
+  none a = Option.none (ArrowEq a);
+  some a = Option.some (ArrowEq a);
+
+  Int = struct
+    ty = wrap (fun (T : Type) => T.Int) : TQ (type int);
+    eq = none (type int);
+  end;
+
+  Arrow a b (ty1 : t a) (ty2 : t b) = struct
+    ty = TQType.Arrow a b (ty1.ty) (ty2.ty);
+
+    M = struct
+      type dom = a;
+      type cod = b;
+
+      eq = Equality.refl (type (a ~> b));
+    end;
+
+    eq = some (type (a ~> b)) (wrap M : ArrowEq (type (a ~> b)));
+  end;
 end;
 
 type Term = sig
