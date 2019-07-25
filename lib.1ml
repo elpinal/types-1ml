@@ -1,4 +1,5 @@
 module lib
 
 submodule std
+submodule equality
 submodule typed_lambda

@@ -1,0 +1,21 @@
+module equality
+
+Equality : sig
+  type t a b;
+
+  refl a      : t a a;
+  trans a b c : t a b -> t b c -> t a c;
+  symm a b    : t a b -> t b a;
+end = struct
+  type t a b = wrap (c : type -> type) -> c a -> c b;
+
+  refl a =
+    let f (c : type -> type) (x : c a) = x in
+      wrap f : t a a;
+
+  trans a b c (x : t a b) (y : t b c) = (unwrap y : t b c) (t a) x;
+
+  type s a b = t b a;
+
+  symm a b (x : t a b) = (unwrap x : t a b) (s a) (refl a);
+end;
