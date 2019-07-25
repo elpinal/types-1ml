@@ -10,6 +10,8 @@ type OPTION = sig
   is_none a : t a ~> bool;
   from a    : a -> t a ~> a;
   map a b   : (a ~> b) -> t a ~> t b;
+
+  bind a b : t a -> (a ~> t b) ~> t b;
 end;
 
 Option :> OPTION = struct
@@ -32,4 +34,8 @@ Option :> OPTION = struct
   from a (def : a) (v : t a) = (unwrap v : t a) a (id a) def;
 
   map a b (f : a ~> b) (v : t a) = (unwrap v : t a) (t b) (fun (x : a) => some b (f x)) (none b);
+
+  bind a b (x : t a) (f : a ~> t b) =
+    let y = map a (t b) f x in
+      from (t b) (none b) y
 end;
