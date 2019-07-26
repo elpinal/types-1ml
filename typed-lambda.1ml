@@ -137,11 +137,14 @@ TypeCheck : Term = struct
   type t = Env ~> option ExType;
   type ty = ExType;
 
+  insert = List.cons ExType;
+
   Int (n : int) (env : Env) = Option.some ExType (ex_type (type int) (TQType.Int));
 
-  Abs (ty1 : ty) (x : t) (env : Env) =
-    let ty1 = unwrap ty1 : ty in
+  Abs (ty1_ : ty) (x : t) (env : Env) =
+    let ty1 = unwrap ty1_ : ty in
     let a = ty1.a in
+    let env = insert ty1_ env in
     Option.bind ExType ExType (x env) (fun (ty2 : ExType) =>
       let ty2 = unwrap ty2 : ExType in
       let b = ty2.a in
