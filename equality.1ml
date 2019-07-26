@@ -6,6 +6,8 @@ Equality : sig
   refl a      : t a a;
   trans a b c : t a b -> t b c -> t a c;
   symm a b    : t a b -> t b a;
+
+  arrow a1 a2 b1 b2 : t a1 a2 -> t b1 b2 -> t (type a1 ~> b1) (type a2 ~> b2);
 end = struct
   type t a b = wrap (c : type -> type) -> c a -> c b;
 
@@ -18,4 +20,13 @@ end = struct
   type s a b = t b a;
 
   symm a b (x : t a b) = (unwrap x : t a b) (s a) (refl a);
+
+  type arr_cod a b c = t a (type b ~> c);
+
+  type arr_dom a b c = t a (type c ~> b);
+
+  arrow a1 a2 b1 b2 (dom : t a1 a2) (cod : t b1 b2) =
+    let eq = refl (type a1 ~> b1) in
+    let eq = (unwrap cod : t b1 b2) (arr_cod (type a1 ~> b1) a1) eq in
+      (unwrap dom : t a1 a2) (arr_dom (type a1 ~> b1) b2) eq
 end;

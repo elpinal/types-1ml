@@ -10,6 +10,7 @@ open equality;
 
 open struct
   list = List.t;
+  option = Option.t;
 end;
 
 type Type = sig
@@ -20,6 +21,8 @@ type Type = sig
 end;
 
 type TQ a = wrap (T : Type) -> T.t a;
+
+fill a (T : Type) (tq : TQ a) : T.t a = (unwrap tq : TQ a) T;
 
 TQType : Type = struct
   type t a = TQ a;
@@ -56,6 +59,9 @@ type ArrowEq a = wrap sig
   type dom;
   type cod;
 
+  d : TQ dom;
+  c : TQ cod;
+
   eq : Equality.t a (type dom ~> cod);
 end;
 
@@ -80,11 +86,41 @@ AsArrow : Type = struct
       type dom = a;
       type cod = b;
 
+      d = ty1.ty;
+      c = ty2.ty;
+
       eq = Equality.refl (type (a ~> b));
     end;
 
     eq = some (type (a ~> b)) (wrap M : ArrowEq (type (a ~> b)));
   end;
+end;
+
+Cast : Type = struct
+  type t a = wrap (b : type) -> TQ b ~> option (Equality.t a b);
+
+  Int =
+    let f b (tq : TQ b) =
+      Option.map (Equality.t b (type int)) (Equality.t (type int) b)
+        (Equality.symm b (type int))
+        (fill b AsInt tq)
+    in
+      wrap f : t (type int);
+
+  Arrow a b (ty1 : t a) (ty2 : t b) =
+    let f c (tq : TQ c) : option (Equality.t (type (a ~> b)) c) =
+      let as_arrow = fill c AsArrow tq in
+      let eq_t = Equality.t (type (a ~> b)) c in
+        Option.bind (ArrowEq c) eq_t (as_arrow.eq) (fun (x : ArrowEq c) =>
+          let x = unwrap x : ArrowEq c in
+          let right = Equality.symm c (type ((x.dom) ~> (x.cod))) (x.eq) in
+          Option.bind (Equality.t a (x.dom)) eq_t ((unwrap ty1 : t a) (x.dom) (x.d)) (fun (eq1 : Equality.t a (x.dom)) =>
+          Option.bind (Equality.t b (x.cod)) eq_t ((unwrap ty2 : t b) (x.cod) (x.c)) (fun (eq2 : Equality.t b (x.cod)) =>
+            let left = Equality.arrow a (x.dom) b (x.cod) eq1 eq2 in
+            let res = Equality.trans (type (a ~> b)) (type ((x.dom) ~> (x.cod))) c left right in
+              Option.some eq_t res)))
+    in
+      wrap f : t (type (a ~> b));
 end;
 
 type Term = sig
