@@ -132,17 +132,36 @@ type Term = sig
   App : t -> t -> t;
 end;
 
-TypeCheck = struct
+TypeCheck : Term = struct
   type Env = list ExType;
-  type t = Env ~> ExType;
+  type t = Env ~> option ExType;
   type ty = ExType;
 
-  Int (n : int) (env : Env) = ex_type (type int) (TQType.Int);
+  Int (n : int) (env : Env) = Option.some ExType (ex_type (type int) (TQType.Int));
 
   Abs (ty1 : ty) (x : t) (env : Env) =
     let ty1 = unwrap ty1 : ty in
     let a = ty1.a in
-    let ty2 = unwrap x env : ExType in
-    let b = ty2.a in
-      ex_type (type (a ~> b)) (TQType.Arrow a b (ty1.tq) (ty2.tq));
+    Option.bind ExType ExType (x env) (fun (ty2 : ExType) =>
+      let ty2 = unwrap ty2 : ExType in
+      let b = ty2.a in
+      let ex = ex_type (type (a ~> b)) (TQType.Arrow a b (ty1.tq) (ty2.tq)) in
+        Option.some ExType ex);
+
+  App (x : t) (y : t) (env : Env) =
+    Option.bind ExType ExType (x env) (fun (ty1 : ExType) =>
+    Option.bind ExType ExType (x env) (fun (ty2 : ExType) =>
+      let ty1 = unwrap ty1 : ExType in
+      let ty2 = unwrap ty2 : ExType in
+      let a = ty1.a in
+      let b = ty2.a in
+      let tq1 = ty1.tq in
+      let tq2 = ty2.tq in
+      let as_arrow = fill a AsArrow tq1 in
+      Option.bind (ArrowEq a) ExType (as_arrow.eq) (fun (arrow_eq : ArrowEq a) =>
+        let arrow_eq = unwrap arrow_eq : ArrowEq a in
+        let cast = unwrap fill (arrow_eq.dom) Cast (arrow_eq.d) : Cast.t (arrow_eq.dom) in
+        let opt_eq = cast b tq2 in
+        Option.bind (Equality.t (arrow_eq.dom) b) ExType opt_eq (fun (eq : Equality.t (arrow_eq.dom) b) =>
+          Option.some ExType (ex_type (arrow_eq.cod) (arrow_eq.c))))));
 end;
