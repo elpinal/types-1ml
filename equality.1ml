@@ -1,6 +1,6 @@
 module equality
 
-Equality : sig
+Equality :> sig
   type t a b;
 
   refl a      : t a a;
