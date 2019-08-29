@@ -12,6 +12,10 @@ type OPTION = sig
   map a b   : (a ~> b) -> t a ~> t b;
 
   bind a b : t a -> (a ~> t b) ~> t b;
+
+  Let b : sig
+    `let+` a : t a -> (a ~> t b) ~> t b;
+  end;
 end;
 
 Option :> OPTION = struct
@@ -37,5 +41,9 @@ Option :> OPTION = struct
 
   bind a b (x : t a) (f : a ~> t b) =
     let y = map a (t b) f x in
-      from (t b) (none b) y
+      from (t b) (none b) y;
+
+  Let b = struct
+    `let+` a = bind a b;
+  end;
 end;
