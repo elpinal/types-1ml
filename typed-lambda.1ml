@@ -114,11 +114,11 @@ Cast : Type = struct
       let include Option.Let eq_t in
       let+ x : ArrowEq c = as_arrow.eq in
       let x = unwrap x : ArrowEq c in
-      let right = Equality.symm c (type ((x.dom) ~> (x.cod))) (x.eq) in
+      let right = Equality.symm c (type (x.dom ~> x.cod)) (x.eq) in
       let+ eq1 : Equality.t a (x.dom) = (unwrap ty1 : t a) (x.dom) (x.d) in
       let+ eq2 : Equality.t b (x.cod) = (unwrap ty2 : t b) (x.cod) (x.c) in
       let left = Equality.arrow a (x.dom) b (x.cod) eq1 eq2 in
-      let res = Equality.trans (type (a ~> b)) (type ((x.dom) ~> (x.cod))) c left right in
+      let res = Equality.trans (type (a ~> b)) (type (x.dom ~> x.cod)) c left right in
         Option.some eq_t res
     in
       wrap f : t (type (a ~> b));
