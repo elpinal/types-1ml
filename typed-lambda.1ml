@@ -129,6 +129,7 @@ type Term = sig
   type ty;
 
   Int : int -> t;
+  Var : int -> t;
   Abs : ty -> t -> t;
   App : t -> t -> t;
 end;
@@ -141,6 +142,8 @@ TypeCheck : Term = struct
   insert = List.cons ExType;
 
   Int (n : int) (env : Env) = Option.some ExType (ex_type (type int) (TQType.Int));
+
+  Var (n : int) (env : Env) = List.nth ExType n env;
 
   Abs (ty1_ : ty) (x : t) (env : Env) =
     let ty1 = unwrap ty1_ : ty in
