@@ -161,13 +161,10 @@ TypeCheck : Term = struct
     let ty2 = unwrap ty2 : ExType in
     let a = ty1.a in
     let b = ty2.a in
-    let tq1 = ty1.tq in
-    let tq2 = ty2.tq in
-    let as_arrow = fill a AsArrow tq1 in
+    let as_arrow = fill a AsArrow (ty1.tq) in
     let+ arrow_eq : ArrowEq a = as_arrow.eq in
     let arrow_eq = unwrap arrow_eq : ArrowEq a in
     let cast = unwrap fill (arrow_eq.dom) Cast (arrow_eq.d) : Cast.t (arrow_eq.dom) in
-    let opt_eq = cast b tq2 in
-    let+ eq : Equality.t (arrow_eq.dom) b = opt_eq in
+    let+ eq : Equality.t (arrow_eq.dom) b = cast b (ty2.tq) in
       Option.some ExType (ex_type (arrow_eq.cod) (arrow_eq.c));
 end;
