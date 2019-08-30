@@ -3,3 +3,6 @@ module lib
 submodule std
 submodule equality
 submodule typed_lambda
+submodule test
+
+z = std.print_endline "finished!";

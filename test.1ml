@@ -1,0 +1,21 @@
+module test
+
+use "types/std"
+use "types/std/list"
+use "types/std/option"
+use "types/typed_lambda"
+
+open std;
+open list;
+open option;
+open typed_lambda;
+
+t1 (T : Term) : T.t = T.Int 500;
+
+ty1 : Option.t ExType = t1 TypeCheck (List.nil ExType);
+
+z =
+  if Option.is_some ExType ty1
+    then print_endline "t1 is well-typed!"
+    else print_endline "t1 is ill-typed!"
+  end : unit;

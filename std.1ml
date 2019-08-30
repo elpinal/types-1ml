@@ -14,3 +14,5 @@ end = struct
 end;
 
 primitive print_endline = "print_endline";
+
+type unit = sig end;
