@@ -1,9 +1,11 @@
 module typed_lambda
 
+use "types/std"
 use "types/std/list"
 use "types/std/option"
 use "types/equality"
 
+open std;
 open list;
 open option;
 open equality;
@@ -18,6 +20,15 @@ type Type = sig
 
   Int : t (type int);
   Arrow a b : t a -> t b -> t (type (a ~> b));
+end;
+
+ShowType : Type = struct
+  type t a = string;
+
+  paren (s : string) = String.concat "(" (String.concat s ")");
+
+  Int = "int";
+  Arrow a b (dom : string) (cod : string) = paren (String.concat dom (String.concat " -> " cod));
 end;
 
 type TQ a = wrap (T : Type) -> T.t a;
