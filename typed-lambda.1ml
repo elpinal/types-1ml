@@ -55,6 +55,17 @@ ex_type a (tq : TQ a) = wrap struct
   tq = tq;
 end : ExType;
 
+ExTypeM : sig
+  to_string : ExType ~> string;
+  print : ExType ~> unit;
+end = struct
+  to_string (ty : ExType) =
+    let ty = unwrap ty : ExType in
+      (unwrap ty.tq : TQ (ty.a)) ShowType;
+
+  print (e : ExType) = print_endline (to_string e);
+end;
+
 AsInt : Type = struct
   type t a = Option.t (Equality.t a (type int));
 
@@ -137,7 +148,7 @@ end;
 
 type Term = sig
   type t;
-  type ty;
+  type ty = ExType;
 
   Int : int -> t;
   Var : int -> t;

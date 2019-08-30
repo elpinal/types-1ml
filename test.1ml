@@ -10,12 +10,66 @@ open list;
 open option;
 open typed_lambda;
 
-t1 (T : Term) : T.t = T.Int 500;
+F (name : string) (t1 : (T : Term) -> T.t) = struct
+  ty1 : Option.t ExType = t1 TypeCheck (List.nil ExType);
 
-ty1 : Option.t ExType = t1 TypeCheck (List.nil ExType);
+  z =
+    let optS = Option.map ExType (type string) (ExTypeM.to_string) ty1 in
+    let s = Option.from (type string) "none" optS in
+      print_endline (String.concat name (String.concat "'s type: " s));
+end;
+
+t1 (T : Term) : T.t = T.Int 500;
+z = F "`500`" t1;
+
+t1 (T : Term) : T.t = T.Abs (ex_type (type int) (TQType.Int)) (t1 T);
+z = F "`\x:int.500`" t1;
+
+t1 (T : Term) : T.t = T.Abs (ex_type (type int) (TQType.Int)) (T.Var 0);
+z = F "`\x:int.x`" t1;
 
 z =
-  if Option.is_some ExType ty1
-    then print_endline "t1 is well-typed!"
-    else print_endline "t1 is ill-typed!"
-  end : unit;
+  let i2i = type (int ~> int) in
+  let tqi2i = ShowType.Arrow (type int) (type int) (ShowType.Int) (ShowType.Int) in
+  let s = ShowType.Arrow i2i i2i tqi2i tqi2i in
+    print_endline (String.concat "testing0: " s);
+
+z =
+  let f (T : Type where (t : type -> (= type string))) =
+        let i2i = type (int ~> int) in
+        let tqi2i = T.Arrow (type int) (type int) (T.Int) (T.Int) in
+        let s = T.Arrow i2i i2i tqi2i tqi2i in
+          print_endline (String.concat "testing0.4: " s)
+  in
+    f ShowType;
+
+z =
+  let i2i = type (int ~> int) in
+  let f (T : Type) =
+        let tqi2i = T.Arrow (type int) (type int) (T.Int) (T.Int) in
+        let s = T.Arrow i2i i2i tqi2i tqi2i in
+          s
+  in
+  let tq = wrap f : TQ (type (i2i ~> i2i)) in
+  let s = (fill (type (i2i ~> i2i)) ShowType tq) in
+    print_endline (String.concat "testing0.6: " s);
+
+z =
+  let i2i = type (int ~> int) in
+  let tqi2i = TQType.Arrow (type int) (type int) (TQType.Int) (TQType.Int) in
+  let tq = TQType.Arrow i2i i2i tqi2i tqi2i in
+  let s = (unwrap tq : TQ (type (i2i ~> i2i))) ShowType in
+    print_endline (String.concat "testing1: " s);
+
+z =
+  let i2i = type (int ~> int) in
+  let tqi2i = TQType.Arrow (type int) (type int) (TQType.Int) (TQType.Int) in
+  let tq = TQType.Arrow i2i i2i tqi2i tqi2i in
+  let e = ex_type (type ((int ~> int) ~> int ~> int)) tq in
+  let s = ExTypeM.to_string e in
+    print_endline (String.concat "testing2: " s);
+
+t1 (T : Term) : T.t =
+  let tq = TQType.Arrow (type int) (type int) (TQType.Int) (TQType.Int) in
+    T.Abs (ex_type (type (int ~> int)) tq) (T.Var 0);
+z = F "`\x:int->int.x`" t1;
